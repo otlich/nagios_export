@@ -157,6 +157,7 @@ class Nagios:
         for row in rows:
             name_tds = row.xpath('./td[1]')
             if len(name_tds) == 0:
+                continue
 
             host_name    = row.xpath('./td[1]/table/tr/td[1]/table/tr/td[1]/a/text()')
             ip           = row.xpath('./td[1]/table/tr/td[1]/table/tr/td[1]/a/@title')
@@ -191,7 +192,7 @@ class Nagios:
 
             if alert.ip is not None:
                 alert.set_attribute('ip', alert.ip)
-            if alarm.atype is not None and alarm.atype not in ['statusEven', 'statusOdd']:
+            if alert.atype is not None and alert.atype not in ['statusEven', 'statusOdd']:
                 alert.set_attribute('nagios_type', alert.atype)
 
             alerts.append(alert)
@@ -250,7 +251,7 @@ def main(nagios_host, alerta_conf):
     nagios = Nagios()
     alerts = nagios.fetch_alerts(nagios_host)
 
-    if not alerts or len(alarms) == 0:
+    if not alerts or len(alerts) == 0:
         return 
 
     alerta = Alerta(alerta_conf["url"], 
@@ -263,6 +264,7 @@ def main(nagios_host, alerta_conf):
     alerta.close_alerts(alerts)
 
     for alert in alerts:
+        alert.host_group.append('Nagios')
         alerta.send(alert)
 
     alerta.heartbeat()
@@ -295,5 +297,3 @@ if __name__ == "__main__":
         child()
     else:    
         sys.exit(0)
-
-
